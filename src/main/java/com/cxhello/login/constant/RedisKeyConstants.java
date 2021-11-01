@@ -15,8 +15,18 @@ public class RedisKeyConstants {
      */
     private static final String LOGIN_TOKEN_KEY = "login_tokens:";
 
+    /**
+     * 注册邮箱key
+     *
+     */
+    private static final String REGISTER_EMAIL_KEY = "register:email:";
+
     public static String getLoginTokenKey(String uuid) {
         return String.format("%s%s", LOGIN_TOKEN_KEY, uuid);
+    }
+
+    public static String getRegisterEmailKey(String email) {
+        return String.format("%s%s", REGISTER_EMAIL_KEY, email);
     }
 
 }

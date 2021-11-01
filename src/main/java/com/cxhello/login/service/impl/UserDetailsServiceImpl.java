@@ -24,12 +24,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private UserService userService;
 
     @Override
-    public UserDetails loadUserByUsername(String phoneNumber) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userService.getOne(Wrappers.lambdaQuery(new User())
-                .eq(User::getPhotoNumber, phoneNumber)
+                .eq(User::getEmail, email)
                 .eq(BaseEntity::getIsDelete, LogicDeleteEnum.NOT_DELETED.getValue()));
         if (user == null) {
-            throw new UsernameNotFoundException("登录手机号：" + phoneNumber + " 不存在");
+            throw new UsernameNotFoundException("登录邮箱：" + email + " 不存在");
         }
         LoginUser loginUser = new LoginUser();
         loginUser.setUser(user);

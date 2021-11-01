@@ -1,24 +1,32 @@
 package com.cxhello.login.controller;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.cxhello.login.constant.RedisKeyConstants;
 import com.cxhello.login.dto.UserDto;
 import com.cxhello.login.entity.BaseEntity;
 import com.cxhello.login.entity.User;
 import com.cxhello.login.enums.LogicDeleteEnum;
 import com.cxhello.login.exception.BusinessException;
 import com.cxhello.login.service.UserService;
+import com.cxhello.login.util.EmailUtils;
 import com.cxhello.login.util.Result;
 import com.cxhello.login.util.ResultUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author cxhello
@@ -28,8 +36,30 @@ import java.util.Date;
 @RestController
 public class UserController {
 
+    @Value("${email.expireTime}")
+    private int expireTime;
+
     @Resource
     private UserService userService;
+
+    @Resource
+    private EmailUtils emailUtils;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+    @GetMapping(value = "/sendEmailVerificationCode")
+    public Result<Object> sendEmailVerificationCode(@Valid @NotBlank(message = "邮箱不能为空") @Email(message = "邮箱格式不合法") String email) {
+        User user = userService.getOne(Wrappers.lambdaQuery(new User())
+                .eq(User::getEmail, email)
+                .eq(BaseEntity::getIsDelete, LogicDeleteEnum.NOT_DELETED.getValue()));
+        if (user != null) {
+            throw new BusinessException("该邮箱已存在");
+        }
+        String emailVerificationCode = emailUtils.send(email);
+        stringRedisTemplate.opsForValue().set(RedisKeyConstants.getRegisterEmailKey(email), emailVerificationCode, expireTime, TimeUnit.MINUTES);
+        return ResultUtils.success();
+    }
 
     /**
      * 注册
@@ -39,10 +69,14 @@ public class UserController {
     @PostMapping(value = "/register")
     public Result<Object> register(@RequestBody @Valid UserDto userDto) {
         User user = userService.getOne(Wrappers.lambdaQuery(new User())
-                .eq(User::getPhotoNumber, userDto.getPhotoNumber())
+                .eq(User::getEmail, userDto.getEmail())
                 .eq(BaseEntity::getIsDelete, LogicDeleteEnum.NOT_DELETED.getValue()));
         if (user != null) {
-            throw new BusinessException("该手机号已存在");
+            throw new BusinessException("该邮箱已存在");
+        }
+        String s = stringRedisTemplate.opsForValue().get(RedisKeyConstants.getRegisterEmailKey(userDto.getEmail()));
+        if (!userDto.getEmailVerificationCode().equals(s)) {
+            throw new BusinessException("验证码不正确");
         }
         user = new User();
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();

@@ -53,7 +53,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public String login(UserDto userDto) {
         // 该方法会去调用UserDetailsServiceImpl.loadUserByUsername
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userDto.getPhotoNumber(), userDto.getPassword()));
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userDto.getEmail(), userDto.getPassword()));
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
         String uuid = UUID.randomUUID().toString();
         loginUser.setToken(uuid);

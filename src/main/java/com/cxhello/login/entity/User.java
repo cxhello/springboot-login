@@ -25,23 +25,13 @@ public class User extends BaseEntity {
     private String nickName;
 
     /**
-     * 用户性别，0-男，1-女，2-未知
+     * 用户邮箱
      */
-    private Integer sex;
-
-    /**
-     * 手机号码
-     */
-    private String photoNumber;
+    private String email;
 
     /**
      * 密码
      */
     private String password;
-
-    /**
-     * 用户邮箱
-     */
-    private String email;
 
 }

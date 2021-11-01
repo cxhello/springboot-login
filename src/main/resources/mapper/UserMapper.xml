@@ -6,10 +6,8 @@
     <resultMap id="BaseResultMap" type="com.cxhello.login.entity.User">
         <id column="id" property="id" />
         <result column="nick_name" property="nickName" />
-        <result column="sex" property="sex" />
-        <result column="photo_number" property="photoNumber" />
-        <result column="password" property="password" />
         <result column="email" property="email" />
+        <result column="password" property="password" />
         <result column="create_time" property="createTime" />
         <result column="create_user" property="createUser" />
         <result column="update_time" property="updateTime" />
@@ -19,7 +17,7 @@
 
     <!-- 通用查询结果列 -->
     <sql id="Base_Column_List">
-        id, nick_name, sex, photo_number, password, email, create_time, create_user, update_time, update_user, is_delete
+        id, nick_name, email, password, create_time, create_user, update_time, update_user, is_delete
     </sql>
 
 </mapper>
