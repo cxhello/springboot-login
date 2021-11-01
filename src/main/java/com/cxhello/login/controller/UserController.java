@@ -11,6 +11,7 @@ import com.cxhello.login.service.UserService;
 import com.cxhello.login.util.EmailUtils;
 import com.cxhello.login.util.Result;
 import com.cxhello.login.util.ResultUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -56,7 +57,11 @@ public class UserController {
         if (user != null) {
             throw new BusinessException("该邮箱已存在");
         }
-        String emailVerificationCode = emailUtils.send(email);
+        String emailVerificationCode = stringRedisTemplate.opsForValue().get(RedisKeyConstants.getRegisterEmailKey(email));
+        if (StringUtils.isNotBlank(emailVerificationCode)) {
+            throw new BusinessException("请稍后再试");
+        }
+        emailVerificationCode = emailUtils.send(email);
         stringRedisTemplate.opsForValue().set(RedisKeyConstants.getRegisterEmailKey(email), emailVerificationCode, expireTime, TimeUnit.MINUTES);
         return ResultUtils.success();
     }
