@@ -51,12 +51,6 @@ public class UserController {
 
     @GetMapping(value = "/sendEmailVerificationCode")
     public Result<Object> sendEmailVerificationCode(@Valid @NotBlank(message = "邮箱不能为空") @Email(message = "邮箱格式不合法") String email) {
-        User user = userService.getOne(Wrappers.lambdaQuery(new User())
-                .eq(User::getEmail, email)
-                .eq(BaseEntity::getIsDelete, LogicDeleteEnum.NOT_DELETED.getValue()));
-        if (user != null) {
-            throw new BusinessException("该邮箱已存在");
-        }
         String emailVerificationCode = stringRedisTemplate.opsForValue().get(RedisKeyConstants.getRegisterEmailKey(email));
         if (StringUtils.isNotBlank(emailVerificationCode)) {
             throw new BusinessException("请稍后再试");
