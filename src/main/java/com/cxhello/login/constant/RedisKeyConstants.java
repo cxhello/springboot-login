@@ -16,17 +16,16 @@ public class RedisKeyConstants {
     private static final String LOGIN_TOKEN_KEY = "login_tokens:";
 
     /**
-     * 注册邮箱key
-     *
+     * 用户验证码key
      */
-    private static final String REGISTER_EMAIL_KEY = "register:email:";
+    private static final String USER_CODE_KEY = "user:code:";
 
     public static String getLoginTokenKey(String uuid) {
         return String.format("%s%s", LOGIN_TOKEN_KEY, uuid);
     }
 
-    public static String getRegisterEmailKey(String email) {
-        return String.format("%s%s", REGISTER_EMAIL_KEY, email);
+    public static String getUserCodeKey(String email) {
+        return String.format("%s%s", USER_CODE_KEY, email);
     }
 
 }

@@ -51,12 +51,12 @@ public class UserController {
 
     @GetMapping(value = "/sendEmailVerificationCode")
     public Result<Object> sendEmailVerificationCode(@Valid @NotBlank(message = "邮箱不能为空") @Email(message = "邮箱格式不合法") String email) {
-        String emailVerificationCode = stringRedisTemplate.opsForValue().get(RedisKeyConstants.getRegisterEmailKey(email));
+        String emailVerificationCode = stringRedisTemplate.opsForValue().get(RedisKeyConstants.getUserCodeKey(email));
         if (StringUtils.isNotBlank(emailVerificationCode)) {
             throw new BusinessException("请稍后再试");
         }
         emailVerificationCode = emailUtils.send(email);
-        stringRedisTemplate.opsForValue().set(RedisKeyConstants.getRegisterEmailKey(email), emailVerificationCode, expireTime, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(RedisKeyConstants.getUserCodeKey(email), emailVerificationCode, expireTime, TimeUnit.MINUTES);
         return ResultUtils.success();
     }
 
@@ -73,7 +73,7 @@ public class UserController {
         if (user != null) {
             throw new BusinessException("该邮箱已存在");
         }
-        String s = stringRedisTemplate.opsForValue().get(RedisKeyConstants.getRegisterEmailKey(userDto.getEmail()));
+        String s = stringRedisTemplate.opsForValue().get(RedisKeyConstants.getUserCodeKey(userDto.getEmail()));
         if (!userDto.getEmailVerificationCode().equals(s)) {
             throw new BusinessException("验证码不正确");
         }
