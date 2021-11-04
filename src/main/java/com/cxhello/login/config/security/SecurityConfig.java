@@ -1,6 +1,7 @@
 package com.cxhello.login.config.security;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -53,6 +54,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Resource
     private CorsFilter corsFilter;
 
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
     /**
      * anyRequest          |   匹配所有请求路径
      * access              |   SpringEl表达式结果为true时可以访问
@@ -80,7 +84,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // 过滤请求
                 .authorizeRequests()
                 // 对于登录login 注册register 允许匿名访问
-                .antMatchers("/login", "/register", "/sendEmailVerificationCode").anonymous()
+                .antMatchers("/sendEmailVerificationCode", "/register", "/login", "/verificationCodeLogin").anonymous()
                 .antMatchers(
                         HttpMethod.GET,
                         "/",
@@ -122,12 +126,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public VerificationCodeAuthenticationProvider verificationCodeAuthenticationProvider() {
+        return new VerificationCodeAuthenticationProvider(userDetailsService, stringRedisTemplate);
+    }
+
     /**
      * 身份认证接口
      */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder());
+        auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder())
+                .and()
+                .authenticationProvider(verificationCodeAuthenticationProvider());
     }
 
 }

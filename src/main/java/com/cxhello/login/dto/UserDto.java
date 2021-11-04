@@ -22,14 +22,14 @@ public class UserDto {
     /**
      * 用户邮箱
      */
-    @NotBlank(message = "邮箱不能为空", groups = {Default.class, Login.class})
-    @Email(message = "邮箱格式不合法", groups = {Default.class, Login.class})
+    @NotBlank(message = "邮箱不能为空", groups = {Default.class, Login.class, VerificationCodeLogin.class})
+    @Email(message = "邮箱格式不合法", groups = {Default.class, Login.class, VerificationCodeLogin.class})
     private String email;
 
     /**
      * 邮箱验证码
      */
-    @NotBlank(message = "邮箱验证码不能为空")
+    @NotBlank(message = "邮箱验证码不能为空", groups = {Default.class, VerificationCodeLogin.class})
     private String emailVerificationCode;
 
     /**
@@ -45,6 +45,10 @@ public class UserDto {
     private String confirmPassword;
 
     public interface Login {
+
+    }
+
+    public interface VerificationCodeLogin {
 
     }
 

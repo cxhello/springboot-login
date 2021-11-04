@@ -98,5 +98,15 @@ public class UserController {
         return ResultUtils.result(token);
     }
 
+    /**
+     * 验证码登录
+     * @param userDto
+     * @return
+     */
+    @PostMapping(value = "/verificationCodeLogin")
+    public Result<String> verificationCodeLogin(@RequestBody @Validated(UserDto.VerificationCodeLogin.class) UserDto userDto) {
+        String token = userService.verificationCodeLogin(userDto);
+        return ResultUtils.result(token);
+    }
 
 }

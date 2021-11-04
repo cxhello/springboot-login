@@ -2,6 +2,7 @@ package com.cxhello.login.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.cxhello.login.config.security.VerificationCodeAuthenticationToken;
 import com.cxhello.login.dto.UserDto;
 import com.cxhello.login.constant.JwtKeyConstants;
 import com.cxhello.login.constant.RedisKeyConstants;
@@ -54,13 +55,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public String login(UserDto userDto) {
         // 该方法会去调用UserDetailsServiceImpl.loadUserByUsername
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userDto.getEmail(), userDto.getPassword()));
-        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
-        String uuid = UUID.randomUUID().toString();
-        loginUser.setToken(uuid);
-        set(loginUser);
-        Map<String, Object> claims = new HashMap<>();
-        claims.put(JwtKeyConstants.LOGIN_USER_KEY, uuid);
-        return jwtUtils.generateToken(claims);
+        return generateToken(authentication);
     }
 
     @Override
@@ -88,10 +83,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
+    @Override
+    public String verificationCodeLogin(UserDto userDto) {
+        // 该方法会去调用UserDetailsServiceImpl.loadUserByUsername
+        Authentication authentication = authenticationManager.authenticate(new VerificationCodeAuthenticationToken(userDto.getEmail(), userDto.getEmailVerificationCode()));
+        stringRedisTemplate.delete(RedisKeyConstants.getUserCodeKey(userDto.getEmail()));
+        return generateToken(authentication);
+    }
+
     private void set(LoginUser loginUser) {
         loginUser.setLoginTime(System.currentTimeMillis());
         loginUser.setExpireTime(loginUser.getLoginTime() + expireTime * MILLIS_MINUTE);
         stringRedisTemplate.opsForValue().set(RedisKeyConstants.getLoginTokenKey(loginUser.getToken()), JSON.toJSONString(loginUser), expireTime, TimeUnit.MINUTES);
+    }
+
+    private String generateToken(Authentication authentication) {
+        LoginUser loginUser = (LoginUser) authentication.getPrincipal();
+        String uuid = UUID.randomUUID().toString();
+        loginUser.setToken(uuid);
+        set(loginUser);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put(JwtKeyConstants.LOGIN_USER_KEY, uuid);
+        return jwtUtils.generateToken(claims);
     }
 
 }

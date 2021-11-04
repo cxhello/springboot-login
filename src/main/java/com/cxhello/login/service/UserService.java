@@ -36,4 +36,11 @@ public interface UserService extends IService<User> {
      */
     void refreshToken(LoginUser loginUser);
 
+    /**
+     * 验证码登录
+     * @param userDto
+     * @return
+     */
+    String verificationCodeLogin(UserDto userDto);
+
 }
